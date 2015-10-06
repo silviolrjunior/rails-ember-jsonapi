@@ -45,6 +45,10 @@ group :development do
   gem 'spring'
 end
 
+gem 'roar'
+gem 'trailblazer'
+gem 'trailblazer-rails'
+
 group :development do
   gem 'better_errors'
   gem 'binding_of_caller'
