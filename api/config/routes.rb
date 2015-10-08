@@ -1,4 +1,16 @@
 Rails.application.routes.draw do
+  # maybe this can be generated automatically
+  resources :articles do
+    get :author, action: :relationship, relationship: :author
+    get 'comments/:id', action: :relationship, relationship: :comments
+    get 'tags/:id', action: :relationship, relationship: :tags
+    get 'relationships/author', action: :relationships, relationship: :author
+    get 'relationships/comments', action: :relationships, relationship: :comments
+    get 'relationships/tags', action: :relationships, relationship: :tags
+  end
+  
+  resources :photos do
+  end
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

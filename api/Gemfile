@@ -45,6 +45,7 @@ group :development do
   gem 'spring'
 end
 
+gem 'jsonapi', github: 'fernandes/jsonapi'
 gem 'roar'
 gem 'trailblazer'
 gem 'trailblazer-rails'
@@ -57,6 +58,7 @@ group :development do
   gem 'guard-bundler', require: false
   gem 'guard-livereload', require: false
   gem 'guard-rspec', require: false
+  gem 'guard-spring', require: false
   gem 'quiet_assets'
   gem 'spring-commands-rspec'
   gem 'thin'
