@@ -267,5 +267,92 @@ class Article < ActiveRecord::Base
         type: type
       ).to_hash
     end
+
+    class Create < Relationships
+      def model!(params)
+        @model = Article.find(params[:article_id])
+        if params["data"].is_a?(Array)
+          create_multiple_relationship(@model, params)
+        else
+          create_one_relationship(@model, params, params["data"]["id"])
+        end
+        @model.save!
+        @model
+      end
+
+      def create_multiple_relationship(object, params)
+        params["data"].each do |item|
+          create_one_relationship(object, params, item["id"])
+        end
+      end
+
+      def create_one_relationship(object, params, id)
+        ids = object.send("#{params[:relationship].to_s.singularize}_ids")
+        ids << id
+        object.send("#{params[:relationship].to_s.singularize}_ids=", ids)
+      end
+    end
+
+    class Update < Relationships
+      def model!(params)
+        @model = Article.find(params[:article_id])
+        if params["data"].nil? or params["data"].empty?
+          remove_relationship(@model, params)
+        elsif params["data"].is_a?(Array)
+          update_has_many_relationship(@model, params)
+        else
+          update_has_one_relationship(@model, params)
+        end
+        @model.save!
+        @model
+      end
+      
+      def remove_relationship(object, params)
+        relationship = params[:relationship].to_s
+        object.send("#{relationship.singularize}_ids=", nil) if object.respond_to?("#{relationship.singularize}_ids=")
+        object.send("#{relationship}_id=", nil) if object.respond_to?("#{relationship.singularize}_id=")
+      end
+
+      def update_has_many_relationship(object, params)
+        ids = []
+        params["data"].each do |item|
+          ids << item["id"]
+        end
+        object.send("#{params[:relationship].to_s.singularize}_ids=", ids)
+      end
+
+      def update_has_one_relationship(object, params)
+        if params["data"].nil?
+          object.send("#{params[:relationship]}_id=", nil)
+        else
+          object.send("#{params[:relationship]}_id=", params["data"]["id"])
+        end
+      end
+    end
+    
+    class Delete < Relationships
+      def model!(params)
+        @model = Article.find(params[:article_id])
+        if params["data"].is_a?(Array)
+          delete_multiple_relationship(@model, params)
+        else
+          delete_one_relationship(@model, params, params["data"]["id"])
+        end
+        @model.save!
+        @model
+      end
+
+      def delete_multiple_relationship(object, params)
+        params["data"].each do |item|
+          delete_one_relationship(object, params, item["id"])
+        end
+      end
+
+      def delete_one_relationship(object, params, id)
+        ids = object.send("#{params[:relationship].to_s.singularize}_ids")
+        ids.delete(id.to_i)
+        object.send("#{params[:relationship].to_s.singularize}_ids=", ids)
+      end
+    end
   end
 end

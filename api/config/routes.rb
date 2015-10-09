@@ -5,8 +5,15 @@ Rails.application.routes.draw do
     get 'comments/:id', action: :relationship, relationship: :comments
     get 'tags/:id', action: :relationship, relationship: :tags
     get 'relationships/author', action: :relationships, relationship: :author
+    patch 'relationships/author', action: :relationships_update, relationship: :author
     get 'relationships/comments', action: :relationships, relationship: :comments
+    patch 'relationships/comments', action: :relationships_update, relationship: :comments
+    post 'relationships/comments', action: :relationships_create, relationship: :comments
+    delete 'relationships/comments', action: :relationships_destroy, relationship: :comments
     get 'relationships/tags', action: :relationships, relationship: :tags
+    patch 'relationships/tags', action: :relationships_update, relationship: :tags
+    post 'relationships/tags', action: :relationships_create, relationship: :tags
+    delete 'relationships/tags', action: :relationships_destroy, relationship: :tags
   end
   
   resources :photos do

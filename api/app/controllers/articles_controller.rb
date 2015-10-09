@@ -9,6 +9,13 @@ class ArticlesController < ApplicationController
     render json: op.to_hash
   end
   
+  def update
+    run Article::Update do |op|
+      response.status = 201
+      render json: op.to_hash
+    end
+  end
+  
   def relationship
     op = Article::Relationship.(params)
     render json: op.to_hash
@@ -19,10 +26,24 @@ class ArticlesController < ApplicationController
     render json: op.to_hash
   end
   
-  def update
-    run Article::Update do |op|
-      response.status = 201
-      render json: op.to_hash
+  def relationships_create
+    run Article::Relationships::Create do |op|
+      response.status = :no_content
+      render text: ""
+    end
+  end
+
+  def relationships_update
+    run Article::Relationships::Update do |op|
+      response.status = :no_content
+      render text: ""
+    end
+  end
+  
+  def relationships_destroy
+    run Article::Relationships::Delete do |op|
+      response.status = :no_content
+      render text: ""
     end
   end
 end
