@@ -18,4 +18,11 @@ class ArticlesController < ApplicationController
     op = Article::Relationships.(params)
     render json: op.to_hash
   end
+  
+  def update
+    run Article::Update do |op|
+      response.status = 201
+      render json: op.to_hash
+    end
+  end
 end

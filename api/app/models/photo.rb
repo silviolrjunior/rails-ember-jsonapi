@@ -40,4 +40,14 @@ class Photo < ActiveRecord::Base
       photo_hash
     end
   end
+  
+  class Delete < Trailblazer::Operation
+    def process(params)
+      @model.destroy
+    end
+
+    def model!(params)
+      Photo.find(params[:id])
+    end
+  end
 end

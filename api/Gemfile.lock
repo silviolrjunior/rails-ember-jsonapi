@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/fernandes/jsonapi.git
-  revision: 26eda22ef7406aff511c5fc376da58167d12af8e
+  revision: 4d0a69c393941feb52c1c27084df0005d40a5edf
   specs:
     jsonapi (0.1.0)
       representable

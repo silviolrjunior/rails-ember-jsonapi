@@ -13,6 +13,116 @@ class Article < ActiveRecord::Base
       puts params
     end
   end
+
+  # contract do; end
+  # representer do; end
+  class Update < Trailblazer::Operation
+    def process(params);
+      # Representable -> Contract (after process_jsonapi)
+      # validate(process_jsonapi(params)) do
+      process_jsonapi(params)
+      # end
+    end
+    def model!(params)
+      Article.find(params[:id])
+    end
+    
+    # Roar Parse -> Representable 
+    # def process_jsonapi(params)
+    #   document = Jsonapi::Document.new(params)
+    #   article_hash = document.data.resource.attributes.to_hash.symbolize_keys
+    #   article_hash
+    # end
+    # Roar Parse -> Representable 
+    def process_jsonapi(params)
+      document = Jsonapi::Document.new(params)
+      # we update the object
+      if document.data.resource.is_a?(Jsonapi::Document::Resource)
+        article_hash = document.data.resource.attributes.to_hash.symbolize_keys
+        @model.update_attributes(article_hash)
+      # we update relationships
+      elsif document.data.resource.is_a?(Jsonapi::Document::ResourceIdentifier)
+        set_relationships(document.data.resource.relationships)
+      end
+    end
+    
+    def set_relationships(params)
+      params.each do |relationship|
+        if relationship.data.is_a?(Array)
+          ids = []
+          relationship.data.each do |item|
+            ids << item.id
+          end
+          set_relationship("#{relationship.type.singularize}_ids", ids)
+        else
+          set_relationship("#{relationship.type}_id", relationship.data.id)
+        end
+      end
+      @model.save!
+    end
+    
+    def set_relationship(relationship_name, item)
+      @model.send("#{relationship_name}=", item)
+    end
+    
+    def to_hash(*)
+      resource = create_resource(@model)
+      # TODO: generate link on representer
+      document = Jsonapi::Document.new(data: resource)
+      document.to_hash
+    end
+    
+    def create_resource(object)
+      # TODO: type comes from representer
+      resource_hash = {
+        id: object.id,
+        type: 'articles',
+        # TODO: discover which attributes, we have on representer
+        attributes: {
+          title: object.title,
+          text: object.text
+        },
+        links: { self: "http://example.com/articles/#{object.id}" }
+      }
+
+      resource_hash.merge!(set_relationships_hash)
+      resource_hash
+    end
+    
+    def set_relationships_hash
+      rel_hash = {}
+      rel_hash.merge!(has_one_relationship_hash("author", @model.author))
+      rel_hash.merge!(has_many_relationship_hash("tags", @model.tags))
+      return {} if rel_hash.empty?
+      {relationships: rel_hash}
+    end
+    
+    def has_one_relationship_hash(type, relationship)
+      return {} if relationship.nil?
+      {
+        "#{type}": {
+          "data": {
+            "type": "people",
+            "id": relationship.id.to_s
+          }
+        }
+      }
+    end
+    
+    def has_many_relationship_hash(type, relationship)
+      return {} if relationship.empty?
+      data_array = []
+      relationship.each do |item|
+        data_array << {type: "tags", id: item.id.to_s}
+      end
+      {
+        "#{type}": {
+          "data": data_array
+        }
+      }
+    end
+      
+  end
   
   class Show < Trailblazer::Operation
     def process(params); end
@@ -23,7 +133,7 @@ class Article < ActiveRecord::Base
     def to_hash(*)
       resource = create_resource(@model)
       # TODO: generate link on representer
-      document = Jsonapi::Document.new(links: {self: 'http://example.com/articles/1'}, data: resource)
+      document = Jsonapi::Document.new(links: {self: "http://example.com/articles/#{@model.id}"}, data: resource)
       document.to_hash
     end
     
